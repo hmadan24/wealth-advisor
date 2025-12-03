@@ -1,0 +1,23 @@
+# Render.com deployment configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: wealth-advisor-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false  # Set this in Render dashboard
+      - key: CORS_ORIGINS
+        sync: false  # Set this in Render dashboard
+      - key: DEMO_MODE
+        value: "false"
+      - key: DEBUG
+        value: "false"
+    healthCheckPath: /api/health
+    autoDeploy: true
+
