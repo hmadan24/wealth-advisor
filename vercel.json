@@ -5,6 +5,11 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://wealth-advisor-production.up.railway.app"
+    }
+  }
 }
 
