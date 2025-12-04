@@ -9,17 +9,17 @@ import {
   Lightbulb, ChevronRight, ArrowUpRight, ArrowDownRight,
   Wallet, Target, Shield, Sparkles, Plus, Trash2, X
 } from 'lucide-react'
+import { apiUrl } from '../config'
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
 
-function Dashboard({ data, showManualEntry, setShowManualEntry }) {
+function Dashboard({ data, showManualEntry, setShowManualEntry, onRefresh }) {
   const [activeTab, setActiveTab] = useState('overview')
-  const [manualHoldings, setManualHoldings] = useState(() => {
-    const saved = localStorage.getItem('manual_holdings')
-    return saved ? JSON.parse(saved) : []
-  })
   
-  const { summary, holdings, asset_allocation, amc_allocation, insights, investor } = data
+  const { summary, holdings = [], asset_allocation, amc_allocation, insights, investor } = data
+  
+  // Extract manual holdings from backend data (marked with source: "manual")
+  const manualHoldings = holdings.filter(h => h.source === 'manual')
 
   const formatCurrency = (amount) => {
     if (amount >= 10000000) {
@@ -82,17 +82,51 @@ function Dashboard({ data, showManualEntry, setShowManualEntry }) {
     { id: 'insights', label: 'Insights', icon: Lightbulb },
   ]
 
-  const handleAddManualHolding = (holding) => {
-    const newHoldings = [...manualHoldings, { ...holding, id: Date.now() }]
-    setManualHoldings(newHoldings)
-    localStorage.setItem('manual_holdings', JSON.stringify(newHoldings))
-    setShowManualEntry(false)
+  const handleAddManualHolding = async (holding) => {
+    try {
+      const response = await fetch(apiUrl('/api/manual-entry'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify(holding)
+      })
+      
+      if (response.ok) {
+        // Refresh portfolio data to show the new entry
+        if (onRefresh) {
+          await onRefresh()
+        }
+        setShowManualEntry(false)
+      } else {
+        console.error('Failed to add manual entry')
+      }
+    } catch (err) {
+      console.error('Failed to add manual entry:', err)
+    }
   }
 
-  const handleDeleteManualHolding = (id) => {
-    const newHoldings = manualHoldings.filter(h => h.id !== id)
-    setManualHoldings(newHoldings)
-    localStorage.setItem('manual_holdings', JSON.stringify(newHoldings))
+  const handleDeleteManualHolding = async (schemeName) => {
+    try {
+      const response = await fetch(apiUrl(`/api/manual-entry/${encodeURIComponent(schemeName)}`), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+      
+      if (response.ok) {
+        // Refresh portfolio data to reflect deletion
+        if (onRefresh) {
+          await onRefresh()
+        }
+      } else {
+        console.error('Failed to delete manual entry')
+      }
+    } catch (err) {
+      console.error('Failed to delete manual entry:', err)
+    }
   }
 
   return (
@@ -345,7 +379,7 @@ function OverviewTab({ assetAllocation, amcAllocation, holdings, manualHoldings 
         <div className="space-y-3">
           {allHoldings.slice(0, 5).map((holding, index) => (
             <div 
-              key={holding.id || index}
+              key={holding.isin || holding.scheme_name || index}
               className="flex items-center gap-4 p-3 rounded-xl bg-surface-900/50 hover:bg-surface-800/50 transition-colors"
             >
               <div className="w-8 h-8 rounded-lg bg-wealth-500/20 flex items-center justify-center text-wealth-400 font-mono text-sm">
@@ -355,7 +389,7 @@ function OverviewTab({ assetAllocation, amcAllocation, holdings, manualHoldings 
                 <p className="font-medium truncate">{holding.scheme_name}</p>
                 <p className="text-xs text-surface-200/60">
                   {holding.amc || 'Manual'}
-                  {holding.id && <span className="ml-2 text-surface-200/40">• manual</span>}
+                  {holding.source === 'manual' && <span className="ml-2 text-surface-200/40">• manual</span>}
                 </p>
               </div>
               <div className="text-right">
@@ -475,7 +509,7 @@ function HoldingsTab({ holdings, manualHoldings, onDeleteManual, setShowManualEn
                   </td>
                 </tr>
               ) : filteredHoldings.map((holding, index) => (
-                <tr key={holding.id || index} className="hover:bg-surface-800/30 transition-colors">
+                <tr key={holding.isin || holding.scheme_name || index} className="hover:bg-surface-800/30 transition-colors">
                   <td className="px-4 py-4">
                     <div className="max-w-xs">
                       <p className="font-medium truncate">{holding.scheme_name}</p>
@@ -496,7 +530,7 @@ function HoldingsTab({ holdings, manualHoldings, onDeleteManual, setShowManualEn
                            holding.asset_class === 'us_equity' ? 'US' : 
                            holding.asset_class}
                         </span>
-                        {holding.id && <span className="text-xs text-surface-200/30">manual</span>}
+                        {holding.source === 'manual' && <span className="text-xs text-surface-200/30">manual</span>}
                       </div>
                     </div>
                   </td>
@@ -525,9 +559,9 @@ function HoldingsTab({ holdings, manualHoldings, onDeleteManual, setShowManualEn
                     </p>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    {holding.id && onDeleteManual && (
+                    {holding.source === 'manual' && onDeleteManual && (
                       <button
-                        onClick={() => onDeleteManual(holding.id)}
+                        onClick={() => onDeleteManual(holding.scheme_name)}
                         className="p-1.5 text-surface-200/40 hover:text-red-400 transition-colors"
                         title="Delete"
                       >

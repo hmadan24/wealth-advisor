@@ -436,6 +436,98 @@ async def upload_cas(
         return PortfolioResponse(success=False, error=str(e))
 
 
+@app.post("/api/manual-entry", response_model=PortfolioResponse)
+async def add_manual_entry(
+    entry: dict,
+    current_user: TokenData = Depends(require_auth),
+    db: Session = Depends(get_db)
+):
+    """Add a manual portfolio entry."""
+    try:
+        master = get_or_create_master_portfolio(db, current_user.phone)
+        master_data = master.portfolio_data or {}
+        
+        # Create holding from manual entry
+        holding = {
+            "scheme_name": entry.get("scheme_name"),
+            "asset_class": entry.get("asset_class"),
+            "units": entry.get("units", 0),
+            "nav": entry.get("nav", 0),
+            "current_value": entry.get("current_value", 0),
+            "invested_amount": entry.get("invested_amount", 0),
+            "absolute_return": entry.get("absolute_return", 0),
+            "percentage_return": entry.get("percentage_return", 0),
+            "amc": entry.get("amc", "Manual"),
+            "isin": "",
+            "folio": "",
+            "valuation_date": entry.get("valuation_date", datetime.utcnow().strftime("%Y-%m-%d")),
+            "source": "manual"
+        }
+        
+        # Add to holdings
+        holdings = master_data.get("holdings", [])
+        holdings.append(holding)
+        master_data["holdings"] = holdings
+        
+        # Recalculate totals
+        master_data = recalculate_portfolio_totals(master_data)
+        master_data["insights"] = generate_insights(master_data)
+        
+        # Save
+        master.portfolio_data = dict(master_data)
+        master.uploaded_at = datetime.utcnow()
+        db.commit()
+        db.refresh(master)
+        
+        logger.info(f"Added manual entry for user {current_user.phone}: {holding['scheme_name']}")
+        
+        return PortfolioResponse(success=True, data=master_data)
+    except Exception as e:
+        logger.error(f"Error adding manual entry: {str(e)}", exc_info=True)
+        return PortfolioResponse(success=False, error=str(e))
+
+
+@app.delete("/api/manual-entry/{scheme_name}")
+async def delete_manual_entry(
+    scheme_name: str,
+    current_user: TokenData = Depends(require_auth),
+    db: Session = Depends(get_db)
+):
+    """Delete a manual entry by scheme name."""
+    try:
+        master = get_or_create_master_portfolio(db, current_user.phone)
+        master_data = master.portfolio_data or {}
+        
+        # Remove manual entry with matching scheme name and source
+        holdings = master_data.get("holdings", [])
+        original_count = len(holdings)
+        master_data["holdings"] = [h for h in holdings 
+                                   if not (h.get("source") == "manual" and 
+                                          h.get("scheme_name") == scheme_name)]
+        
+        deleted_count = original_count - len(master_data["holdings"])
+        
+        if deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Manual entry not found")
+        
+        # Recalculate totals
+        master_data = recalculate_portfolio_totals(master_data)
+        master_data["insights"] = generate_insights(master_data)
+        
+        # Save
+        master.portfolio_data = dict(master_data)
+        db.commit()
+        
+        logger.info(f"Deleted manual entry for user {current_user.phone}: {scheme_name}")
+        
+        return {"success": True, "deleted": deleted_count}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting manual entry: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/portfolio", response_model=PortfolioResponse)
 async def get_portfolio(
     current_user: TokenData = Depends(require_auth),

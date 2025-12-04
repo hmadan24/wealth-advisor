@@ -292,6 +292,7 @@ function App() {
             showManualEntry={showManualEntry}
             setShowManualEntry={setShowManualEntry}
             segments={segments}
+            onRefresh={loadPortfolio}
           />
         ) : (
           <div className="animate-fade-in">
