@@ -98,7 +98,7 @@ function Dashboard({ data, showManualEntry, setShowManualEntry, onRefresh }) {
         if (onRefresh) {
           await onRefresh()
         }
-        setShowManualEntry(false)
+    setShowManualEntry(false)
       } else {
         console.error('Failed to add manual entry')
       }
@@ -588,6 +588,7 @@ function ManualEntryModal({ onClose, onAdd, defaultAssetClass }) {
     current_nav: '',
     amc: '',
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const assetClassOptions = [
     { key: 'equity', label: 'Equity (Indian)' },
@@ -599,8 +600,13 @@ function ManualEntryModal({ onClose, onAdd, defaultAssetClass }) {
     { key: 'gold', label: 'Gold' },
   ]
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Prevent double submission
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    
     const units = parseFloat(formData.units) || 0
     const purchaseNav = parseFloat(formData.purchase_nav) || 0
     const currentNav = parseFloat(formData.current_nav) || 0
@@ -609,7 +615,7 @@ function ManualEntryModal({ onClose, onAdd, defaultAssetClass }) {
     const absoluteReturn = currentValue - invested
     const pctReturn = invested > 0 ? (absoluteReturn / invested) * 100 : 0
 
-    onAdd({
+    await onAdd({
       scheme_name: formData.scheme_name,
       asset_class: formData.asset_class,
       units: units,
@@ -623,6 +629,8 @@ function ManualEntryModal({ onClose, onAdd, defaultAssetClass }) {
       folio: '',
       valuation_date: new Date().toISOString().split('T')[0],
     })
+    
+    // Note: setIsSubmitting(false) not needed as modal closes after successful add
   }
 
   return (
@@ -725,9 +733,14 @@ function ManualEntryModal({ onClose, onAdd, defaultAssetClass }) {
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 rounded-lg bg-wealth-500 text-white hover:bg-wealth-600 transition-colors"
+              disabled={isSubmitting}
+              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                isSubmitting 
+                  ? 'bg-surface-700 text-surface-400 cursor-not-allowed' 
+                  : 'bg-wealth-500 text-white hover:bg-wealth-600'
+              }`}
             >
-              Add Entry
+              {isSubmitting ? 'Adding...' : 'Add Entry'}
             </button>
           </div>
         </form>

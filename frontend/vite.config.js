@@ -5,17 +5,17 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
-    plugins: [react()],
+  plugins: [react()],
     define: {
       // Make env vars available to the app
       'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || ''),
     },
-    server: {
-      port: 5173,
-      proxy: {
-        '/api': {
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
           target: env.VITE_API_URL || 'http://localhost:8000',
-          changeOrigin: true,
+        changeOrigin: true,
         }
       }
     },

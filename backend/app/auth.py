@@ -82,7 +82,7 @@ def send_otp(phone: str) -> dict:
     # TODO: Integrate with SMS provider (Twilio, MSG91, etc.)
     logger.info(f"OTP generated for {phone} (SMS integration needed)")
     
-    return {"success": True, "message": "OTP sent successfully"}
+        return {"success": True, "message": "OTP sent successfully"}
 
 
 def verify_otp(phone: str, otp: str) -> bool:
