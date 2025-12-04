@@ -42,7 +42,7 @@ class Settings:
     
     # Demo mode - allows hardcoded OTP for all users
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() == "true"
-    DEMO_OTP: str = os.getenv("DEMO_OTP", "123456")
+    DEMO_OTP: str = os.getenv("DEMO_OTP", "1234")
     
     @property
     def is_production(self) -> bool:

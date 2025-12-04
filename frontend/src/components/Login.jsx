@@ -206,7 +206,7 @@ function Login({ onLogin }) {
         {/* Demo mode info */}
         <div className="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
           <p className="text-sm text-blue-400 text-center">
-            <strong>Demo Mode:</strong> Enter any phone number • Use OTP: <span className="font-mono font-bold">123456</span>
+            <strong>Demo Mode:</strong> Enter any phone number • Use OTP: <span className="font-mono font-bold">1234</span>
           </p>
         </div>
       </div>
