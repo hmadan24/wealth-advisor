@@ -30,51 +30,14 @@ function Dashboard({ data, showManualEntry, setShowManualEntry, onRefresh }) {
     return `₹${amount.toLocaleString('en-IN')}`
   }
 
-  // Calculate totals including manual holdings
-  const manualTotalValue = manualHoldings.reduce((sum, h) => sum + (h.current_value || 0), 0)
-  const totalPortfolioValue = (summary.total_value || 0) + manualTotalValue
-  const totalSchemeCount = (summary.scheme_count || 0) + manualHoldings.length
+  // Backend summary already includes manual entries, no need to add them again
+  const totalPortfolioValue = summary.total_value || 0
+  const totalSchemeCount = summary.scheme_count || 0
 
-  // Combine asset allocation with manual holdings
-  const getCombinedAssetAllocation = () => {
-    const allocationMap = {}
-    
-    // Add backend asset allocation
-    asset_allocation.forEach(item => {
-      const key = item.asset_class.toLowerCase()
-      allocationMap[key] = {
-        asset_class: item.asset_class,
-        value: item.value || 0,
-        scheme_count: item.scheme_count || 0
-      }
-    })
-    
-    // Add manual holdings
-    manualHoldings.forEach(h => {
-      const key = h.asset_class.toLowerCase()
-      if (!allocationMap[key]) {
-        allocationMap[key] = {
-          asset_class: h.asset_class.charAt(0).toUpperCase() + h.asset_class.slice(1).replace('_', ' '),
-          value: 0,
-          scheme_count: 0
-        }
-      }
-      allocationMap[key].value += h.current_value || 0
-      allocationMap[key].scheme_count += 1
-    })
-    
-    // Calculate percentages
-    const total = Object.values(allocationMap).reduce((sum, item) => sum + item.value, 0)
-    return Object.values(allocationMap)
-      .map(item => ({
-        ...item,
-        percentage: total > 0 ? Math.round((item.value / total) * 10000) / 100 : 0
-      }))
-      .filter(item => item.value > 0)
-      .sort((a, b) => b.value - a.value)
-  }
-
-  const combinedAssetAllocation = getCombinedAssetAllocation()
+  // Backend asset_allocation already includes manual entries, just use it directly
+  const combinedAssetAllocation = asset_allocation
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.value - a.value)
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Wallet },
