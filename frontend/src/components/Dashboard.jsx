@@ -289,8 +289,8 @@ function OverviewTab({ assetAllocation, amcAllocation, holdings, manualHoldings 
     asset_class: item.asset_class.toLowerCase() === 'other' ? 'Mutual Funds' : item.asset_class
   }))
 
-  // Combine all holdings for top 5
-  const allHoldings = [...holdings, ...manualHoldings].sort((a, b) => 
+  // All holdings already include manual entries from backend
+  const allHoldings = [...holdings].sort((a, b) => 
     (b.current_value || 0) - (a.current_value || 0)
   )
 
@@ -428,11 +428,9 @@ function HoldingsTab({ holdings, manualHoldings, onDeleteManual, setShowManualEn
     return cls
   }
 
-  // Combine imported holdings with manual holdings
-  const allHoldings = [
-    ...holdings.map(h => ({ ...h, asset_class: normalizeAssetClass(h.asset_class) })),
-    ...(manualHoldings || [])
-  ]
+  // All holdings already include manual entries (source: "manual") from backend
+  // No need to add manualHoldings separately as they're already in holdings
+  const allHoldings = holdings.map(h => ({ ...h, asset_class: normalizeAssetClass(h.asset_class) }))
 
   const filteredHoldings = allHoldings
     .filter(h => filterClass === 'all' || h.asset_class === filterClass)
