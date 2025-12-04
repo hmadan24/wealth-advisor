@@ -40,10 +40,9 @@ class Settings:
         if origin.strip()
     ]
     
-    # Demo mode - allows hardcoded OTP for local testing
+    # Demo mode - allows hardcoded OTP for all users
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() == "true"
-    DEMO_PHONE: str = os.getenv("DEMO_PHONE", "7899021114")
-    DEMO_OTP: str = os.getenv("DEMO_OTP", "1234")
+    DEMO_OTP: str = os.getenv("DEMO_OTP", "123456")
     
     @property
     def is_production(self) -> bool:

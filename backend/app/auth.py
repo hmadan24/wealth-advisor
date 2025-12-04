@@ -51,24 +51,13 @@ def generate_otp() -> str:
 def send_otp(phone: str) -> dict:
     """
     Send OTP to phone number.
-    - In demo mode: Returns hardcoded OTP for test number
+    - In demo mode: Uses hardcoded OTP (123456) for all users
     - In production: Would use Supabase Auth or SMS provider
     """
-    # Demo mode - use hardcoded credentials
+    # Demo mode - use hardcoded OTP for all users
     if settings.DEMO_MODE:
-        if phone == settings.DEMO_PHONE:
-            logger.info(f"[DEMO] OTP for {phone}: {settings.DEMO_OTP}")
-            return {"success": True, "message": "OTP sent successfully", "demo": True}
-        
-        # In demo mode, also allow any phone with generated OTP
-        otp = generate_otp()
-        otp_store[phone] = {
-            "otp": otp,
-            "created_at": datetime.utcnow(),
-            "attempts": 0
-        }
-        logger.info(f"[DEMO] Generated OTP for {phone}: {otp}")
-        return {"success": True, "message": f"OTP sent (demo mode: {otp})", "demo": True, "otp": otp}
+        logger.info(f"[DEMO] OTP for {phone}: {settings.DEMO_OTP}")
+        return {"success": True, "message": "OTP sent successfully", "demo": True}
     
     # Production mode - generate and store OTP
     # In a real app, you'd send this via SMS (Twilio, etc.)
@@ -82,16 +71,16 @@ def send_otp(phone: str) -> dict:
     # TODO: Integrate with SMS provider (Twilio, MSG91, etc.)
     logger.info(f"OTP generated for {phone} (SMS integration needed)")
     
-        return {"success": True, "message": "OTP sent successfully"}
+    return {"success": True, "message": "OTP sent successfully"}
 
 
 def verify_otp(phone: str, otp: str) -> bool:
     """Verify OTP for a phone number."""
-    # Demo mode - check hardcoded credentials
-    if settings.DEMO_MODE and phone == settings.DEMO_PHONE:
+    # Demo mode - use hardcoded OTP for all users
+    if settings.DEMO_MODE:
         return otp == settings.DEMO_OTP
     
-    # Check stored OTP
+    # Production mode - check stored OTP
     stored = otp_store.get(phone)
     if not stored:
         return False
