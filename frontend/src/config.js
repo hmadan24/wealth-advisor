@@ -3,7 +3,10 @@
  */
 
 // API base URL - uses environment variable in production, proxy in development
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// Fallback to production URL when deployed on Vercel without env var
+const PRODUCTION_API_URL = 'https://wealth-advisor-production.up.railway.app';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? PRODUCTION_API_URL : '');
 
 // Build the full API URL for a path
 export function apiUrl(path) {
