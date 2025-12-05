@@ -115,10 +115,11 @@ def analyze_asset_allocation(allocation: List[Dict]) -> Dict[str, List]:
         asset_class = asset.get("asset_class", "").lower()
         pct = asset.get("percentage", 0)
         
-        if asset_class == "equity":
-            equity_pct = pct
+        # Include both Indian equity and US equity in total equity calculation
+        if asset_class in ["equity", "us equity"]:
+            equity_pct += pct
         elif asset_class == "debt":
-            debt_pct = pct
+            debt_pct += pct
     
     # Asset allocation insights
     if equity_pct > 80:
