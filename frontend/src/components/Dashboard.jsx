@@ -724,11 +724,15 @@ function InsightsTab({ insights }) {
             <Sparkles className="w-5 h-5 text-wealth-400" />
             Recommended Actions
           </h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {actionables.map((action, index) => (
               <div 
                 key={index}
-                className="glass-card rounded-xl p-4 border-l-4 border-wealth-500"
+                className={`glass-card rounded-xl p-4 border-l-4 border-wealth-500 ${
+                  actionables.length % 2 !== 0 && index === actionables.length - 1 
+                    ? 'lg:col-span-2 lg:max-w-[calc(50%-0.5rem)]' 
+                    : ''
+                }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`
@@ -804,9 +808,16 @@ function InsightsTab({ insights }) {
             <CheckCircle2 className="w-5 h-5 text-blue-400" />
             Portfolio Summary
           </h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {summary_insights.map((insight, index) => (
-              <div key={index} className="glass-card rounded-xl p-4">
+              <div 
+                key={index} 
+                className={`glass-card rounded-xl p-4 ${
+                  summary_insights.length % 2 !== 0 && index === summary_insights.length - 1 
+                    ? 'lg:col-span-2 lg:max-w-[calc(50%-0.5rem)]' 
+                    : ''
+                }`}
+              >
                 <h4 className="font-medium text-sm text-surface-200/80">{insight.title}</h4>
                 <p className="text-sm text-surface-200/60 mt-1">{insight.description}</p>
               </div>

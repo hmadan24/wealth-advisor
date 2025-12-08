@@ -1,0 +1,125 @@
+# Portfolio Evaluation Rules Configuration
+# All thresholds and criteria for portfolio insights generation
+
+# Concentration Risk Rules
+concentration:
+  high:
+    threshold: 0.40  # 40%
+    severity: "high"
+    title: "High Single Fund Concentration"
+    description_template: "Your largest holding '{fund_name}' represents {percentage:.1f}% of your portfolio."
+    recommendation: "Consider rebalancing to reduce concentration below 25% in any single fund."
+  
+  moderate:
+    threshold: 0.25  # 25%
+    severity: "medium"
+    title: "Moderate Concentration Risk"
+    description_template: "Your top fund represents {percentage:.1f}% of portfolio."
+    recommendation: "Monitor this position and consider gradual diversification."
+
+# Portfolio Size / Diversification Rules
+diversification:
+  over_diversified:
+    threshold: 15  # number of schemes
+    severity: "medium"
+    title: "Portfolio Over-Diversification"
+    description_template: "You have {count} schemes which may be difficult to track and manage."
+    recommendation: "Consider consolidating into 8-12 well-chosen funds for better manageability."
+    actionable:
+      priority: "medium"
+      action: "Consolidate Portfolio"
+      description_template: "Review and merge similar funds. Target: reduce from {count} to ~10 schemes."
+      impact: "Easier tracking, lower overlap, potentially lower costs"
+  
+  optimal_range:
+    min: 5
+    max: 12
+
+# Asset Allocation Rules
+asset_allocation:
+  aggressive:
+    equity_threshold: 0.80  # 80%
+    title: "Aggressive Portfolio"
+    description_template: "Your portfolio is {percentage:.0f}% in equity - suitable for long-term goals (7+ years) with high risk tolerance."
+    actionable:
+      priority: "low"
+      action: "Consider Adding Debt"
+      description: "For stability during market corrections, consider 10-20% allocation to debt funds."
+      impact: "Reduced volatility, emergency liquidity"
+  
+  conservative:
+    equity_threshold: 0.40  # 40%
+    title: "Conservative Portfolio"
+    description_template: "Your portfolio has only {percentage:.0f}% in equity - may not beat inflation long-term."
+    actionable:
+      priority: "medium"
+      action: "Increase Equity Exposure"
+      description: "If your investment horizon is 5+ years, consider increasing equity to 60-70%."
+      impact: "Better long-term wealth creation potential"
+  
+  balanced:
+    title: "Balanced Portfolio"
+    description_template: "Your {equity_pct:.0f}% equity and {debt_pct:.0f}% debt allocation is well-balanced for moderate risk."
+
+# Fund Overlap Detection
+fund_overlap:
+  large_cap:
+    threshold: 2  # number of funds
+    severity: "medium"
+    title: "Large Cap Fund Overlap"
+    description_template: "You have {count} large cap funds which likely hold similar stocks."
+    recommendation: "Large cap funds typically hold the same top 50-100 stocks. Consider consolidating into 1-2 funds."
+    actionable:
+      priority: "medium"
+      action: "Consolidate Large Cap Funds"
+      description: "Keep 1 active large cap fund OR switch entirely to a low-cost Nifty 50 index fund."
+      impact: "Reduced overlap, lower expense ratio, simpler tracking"
+    keywords:
+      - "large cap"
+      - "largecap"
+      - "bluechip"
+  
+  flexi_cap:
+    threshold: 2  # number of funds
+    severity: "low"
+    title: "Multiple Flexi Cap Funds"
+    description_template: "You have {count} flexi/multi cap funds with overlapping mandates."
+    recommendation: "Consider keeping 1-2 best performing flexi cap funds."
+    keywords:
+      - "flexi"
+      - "multi"
+
+# Performance Analysis
+performance:
+  underperformer_threshold: 0  # negative returns
+  strong_performer_threshold: 0.15  # 15%+
+  top_underperformers_to_show: 3
+
+# Portfolio Health Score
+health_score:
+  penalties:
+    high_risk: 15
+    medium_risk: 8
+    low_risk: 3
+  
+  bonuses:
+    strong_returns_threshold: 0.12  # 12%+
+    strong_returns_bonus: 5
+    negative_returns_penalty: 10
+    diversification_min: 5
+    diversification_max: 12
+    diversification_bonus: 5
+  
+  grades:
+    A:
+      min_score: 80
+      verdict: "Excellent"
+    B:
+      min_score: 65
+      verdict: "Good"
+    C:
+      min_score: 50
+      verdict: "Average"
+    D:
+      min_score: 0
+      verdict: "Needs Attention"
